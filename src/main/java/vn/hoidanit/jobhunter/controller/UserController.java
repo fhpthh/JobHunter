@@ -1,14 +1,12 @@
 package vn.hoidanit.jobhunter.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UserController {
@@ -26,5 +24,19 @@ public class UserController {
         User createUser = this.userService.handleCreateUser(user);
         return createUser;
     }
+    @DeleteMapping("users/{id}")
+    public String deleteUser(@PathVariable long id) {
+        this.userService.handleDeleteUser(id);
+        return "deleted" ;
+    }
 
+    @GetMapping("users/{id}")
+        public User handleGetUserById(@PathVariable long id) {
+            return this.userService.handleUserById(id);
+    }
+    @PutMapping("users/{id}")
+    public User handleUpdateUser(@RequestBody User user, @PathVariable long id) {
+        User updateUser = this.userService.handleUpdateUser(user, id);
+        return updateUser;
+    }
 }
