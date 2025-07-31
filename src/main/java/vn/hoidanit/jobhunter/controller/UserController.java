@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.service.UserService;
+import vn.hoidanit.jobhunter.service.error.IdInValidException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +27,20 @@ public class UserController {
         User createUser = this.userService.handleCreateUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createUser);
     }
+
+
     @DeleteMapping("users/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable("id") long id) throws IdInValidException {
+        if(id >= 1500) {
+            throw new IdInValidException("Id phải nhỏ hơn 1500");
+        }
         this.userService.handleDeleteUser(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build() ;
+        return ResponseEntity.ok("Deleted");
     }
 
     @GetMapping("users/{id}")
-        public ResponseEntity<User> handleGetUserById(@PathVariable long id) {
+        public ResponseEntity<User> handleGetUserById(@PathVariable("id") long id) {
+
                 User user = this.userService.handleUserById(id);
             return ResponseEntity.ok().body(user);
     }
