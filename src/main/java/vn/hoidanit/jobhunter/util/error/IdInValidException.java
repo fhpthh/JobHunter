@@ -1,4 +1,4 @@
-package vn.hoidanit.jobhunter.service.error;
+package vn.hoidanit.jobhunter.util.error;
 
 public class IdInValidException extends Exception {
     public IdInValidException(String message) {

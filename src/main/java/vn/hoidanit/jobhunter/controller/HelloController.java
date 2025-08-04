@@ -1,10 +1,8 @@
 package vn.hoidanit.jobhunter.controller;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import vn.hoidanit.jobhunter.service.error.IdInValidException;
+import vn.hoidanit.jobhunter.util.error.IdInValidException;
 
 @RestController
 public class HelloController {
