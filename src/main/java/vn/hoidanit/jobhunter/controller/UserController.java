@@ -1,10 +1,13 @@
 package vn.hoidanit.jobhunter.controller;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.error.IdInValidException;
 
@@ -19,8 +22,19 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
     @GetMapping("users")
-    public ResponseEntity<List<User>> getUsers() {
-        List<User> arr = this.userService.findAll();
+    public ResponseEntity<ResultPaginationDTO> getUsers(
+            @RequestParam("current") Optional<String> currentOptional,
+            @RequestParam("pageSize") Optional<String> pageSizeOptional
+    ) {
+
+        String sCurrent = currentOptional.isPresent() ? currentOptional.get() : "";
+        String sPageSize = pageSizeOptional.isPresent() ? pageSizeOptional.get() : "";
+
+        int current = Integer.parseInt(sCurrent);
+        int pageSize = Integer.parseInt(sPageSize);
+        Pageable pageable =  PageRequest.of(current - 1, pageSize);
+
+        ResultPaginationDTO arr = this.userService.findAll(pageable);
         return ResponseEntity.ok().body(arr);
     }
     @PostMapping("users")
