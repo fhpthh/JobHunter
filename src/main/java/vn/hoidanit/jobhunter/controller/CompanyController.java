@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.CompanyService;
+import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,7 @@ public class CompanyController {
     }
 
     @GetMapping("/companies")
+    @ApiMessage("fetch all companies")
     public ResponseEntity<ResultPaginationDTO> getAllCompanies(
             @Filter Specification<Company> spec, Pageable pageable
             ) {
@@ -40,6 +42,7 @@ public class CompanyController {
     }
 
     @PutMapping("/compaines")
+    @ApiMessage("update company")
     public ResponseEntity<Company> updateCompany(@Valid @RequestBody Company company) {
         Company updateCom = this.companyService.handleUpdateCompany(company);
         return ResponseEntity.ok().body(updateCom);

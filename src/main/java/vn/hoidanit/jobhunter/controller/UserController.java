@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
+import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInValidException;
 
 import java.util.*;
@@ -24,6 +25,7 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
     @GetMapping("users")
+    @ApiMessage("fetch all users")
     public ResponseEntity<ResultPaginationDTO> getUsers(
             @Filter Specification<User> spec,
             Pageable pageable
