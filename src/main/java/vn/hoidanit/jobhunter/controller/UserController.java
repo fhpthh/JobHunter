@@ -17,6 +17,7 @@ import vn.hoidanit.jobhunter.util.error.IdInValidException;
 import java.util.*;
 
 @RestController
+@RequestMapping("api/v1")
 public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
