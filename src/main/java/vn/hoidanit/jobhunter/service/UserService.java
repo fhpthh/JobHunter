@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.Meta;
+import vn.hoidanit.jobhunter.domain.dto.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 
@@ -71,6 +72,22 @@ public class UserService {
 
     public User handleGetUserByUsername(String email) {
         return this.userRepository.findByEmail(email);
+    }
+
+    public boolean checkEmail(String email) {
+        return this.userRepository.existsUserByEmail(email);
+    }
+
+    public ResCreateUserDTO convertTokenCreateUserDTO(User user) {
+        ResCreateUserDTO rs = new ResCreateUserDTO();
+        rs.setId(user.getId());
+        rs.setEmail(user.getEmail());
+        rs.setName(user.getName());
+        rs.setAge(user.getAge());
+        rs.setCreatedAt(user.getCreatedAt());
+        rs.setAddress(user.getAddress());
+        rs.setGender(user.getGender());
+        return rs;
     }
 
 }

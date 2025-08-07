@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.controller;
 
 import com.turkraft.springfilter.boot.Filter;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
@@ -36,12 +38,21 @@ public class UserController {
         return ResponseEntity.ok().body(arr);
     }
     @PostMapping("users")
-    public ResponseEntity<User> createNewUser(@RequestBody User user) {
+    @ApiMessage("create a user")
+    public ResponseEntity<ResCreateUserDTO> createNewUser(@Valid @RequestBody User user) throws IdInValidException {
+
+        boolean isEmail = this.userService.checkEmail(user.getEmail());
+        if (isEmail) {
+            throw new IdInValidException(
+                    "Email" + user.getEmail() + "da ton tai, vui long su dung email khac"
+            );
+        }
         // ma hoa mat khau
         String hashPassword = this.passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
         User createUser = this.userService.handleCreateUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertTokenCreateUserDTO(createUser));
+//       return ResponseEntity.status(HttpStatus.CREATED).body(createUser);
     }
 
 
