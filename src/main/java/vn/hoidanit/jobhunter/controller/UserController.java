@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.ResCreateUserDTO;
+import vn.hoidanit.jobhunter.domain.dto.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
@@ -44,7 +45,7 @@ public class UserController {
         boolean isEmail = this.userService.checkEmail(user.getEmail());
         if (isEmail) {
             throw new IdInValidException(
-                    "Email" + user.getEmail() + "da ton tai, vui long su dung email khac"
+                    "Email " + user.getEmail() + "da ton tai, vui long su dung email khac"
             );
         }
         // ma hoa mat khau
@@ -57,23 +58,34 @@ public class UserController {
 
 
     @DeleteMapping("users/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable("id") long id) throws IdInValidException {
-        if(id >= 1500) {
-            throw new IdInValidException("Id phải nhỏ hơn 1500");
+    @ApiMessage("delete a user")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInValidException {
+        User curuser = this.userService.handleUserById(id);
+        if (curuser == null) {
+            throw new IdInValidException("User witd id" + id + "not found");
         }
         this.userService.handleDeleteUser(id);
-        return ResponseEntity.ok("Deleted");
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("users/{id}")
-        public ResponseEntity<User> handleGetUserById(@PathVariable("id") long id) {
+    @ApiMessage("fetc user by id")
+        public ResponseEntity<ResUserDTO> handleGetUserById(@PathVariable("id") long id) throws IdInValidException {
 
-                User user = this.userService.handleUserById(id);
-            return ResponseEntity.ok().body(user);
+        User user = this.userService.handleUserById(id);
+        if (user == null) {
+            throw  new IdInValidException("User with id " + id + "not found");
+        }
+            return ResponseEntity.ok().body(this.userService.convertUserDTO(user));
     }
-    @PutMapping("users/{id}")
-    public ResponseEntity<User> handleUpdateUser(@RequestBody User user, @PathVariable long id) {
-        User updateUser = this.userService.handleUpdateUser(user, id);
+    @PutMapping("users")
+    @ApiMessage("update a user")
+    public ResponseEntity<User> handleUpdateUser(@RequestBody User user)  throws  IdInValidException {
+
+        User updateUser = this.userService.handleUpdateUser(user);
+        if (updateUser == null) {
+            throw new IdInValidException("User with id " + user.getId() + "not found");
+        }
         return ResponseEntity.ok().body(updateUser);
     }
 }

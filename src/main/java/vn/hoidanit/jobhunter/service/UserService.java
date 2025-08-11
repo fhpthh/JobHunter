@@ -5,13 +5,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.domain.dto.Meta;
-import vn.hoidanit.jobhunter.domain.dto.ResCreateUserDTO;
-import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
+import vn.hoidanit.jobhunter.domain.dto.*;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -38,7 +37,19 @@ public class UserService {
         mt.setTotal(pageUser.getTotalElements());
 //
         rs.setMeta(mt);
-        rs.setResult(pageUser.getContent());
+
+        List<ResUserDTO> listUser = pageUser.getContent()
+                        .stream().map(item -> new ResUserDTO(
+                            item.getId(),
+                            item.getEmail(),
+                            item.getName(),
+                            item.getAge(),
+                        item.getCreatedAt(),
+                        item.getUpdatedAt(),
+                        item.getAddress(),
+                        item.getGender()))
+                        .collect(Collectors.toList());
+        rs.setResult(listUser);
 
         return rs;
     }
@@ -57,13 +68,14 @@ public class UserService {
         return null;
     }
 
-    public User handleUpdateUser(User user, long id) {
-        User currentUser = this.handleUserById(id);
+    public User handleUpdateUser(User user) {
+        User currentUser = this.handleUserById(user.getId());
 
         if (currentUser != null) {
             currentUser.setName(user.getName());
-            currentUser.setEmail(user.getEmail());
-            currentUser.setPassword(user.getPassword());
+            currentUser.setAddress(user.getAddress());
+            currentUser.setGender(user.getGender());
+            currentUser.setAge(user.getAge());
 
             currentUser = this.userRepository.save(currentUser);
         }
@@ -89,5 +101,34 @@ public class UserService {
         rs.setGender(user.getGender());
         return rs;
     }
+
+    public ResUserDTO convertUserDTO(User user) {
+        ResUserDTO rs = new ResUserDTO();
+        rs.setId(user.getId());
+        rs.setEmail(user.getEmail());
+        rs.setName(user.getName());
+        rs.setAge(user.getAge());
+        rs.setCreatedAt(user.getCreatedAt());
+        rs.setUpdatedAt(user.getUpdatedAt());
+        rs.setAddress(user.getAddress());
+        rs.setGender(user.getGender());
+        return rs;
+
+    }
+
+    public ResUpdateUserDTO convertToResUpdateUserDTO(User user){
+        ResUpdateUserDTO rs = new ResUpdateUserDTO();
+        rs.setId(user.getId());
+        rs.setName(user.getName());
+        rs.setAge(user.getAge());
+        rs.setUpdatedAt(user.getUpdatedAt());
+        rs.setGender(user.getGender());
+        rs.setAddress(user.getAddress());
+        return rs;
+
+
+
+    }
+
 
 }
