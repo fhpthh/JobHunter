@@ -15,6 +15,7 @@ import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 
 @RestController
 @RequestMapping("api/v1")
@@ -31,7 +32,7 @@ public class AuthController {
     }
     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     public long refreshTokenExpiration;
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid  @RequestBody LoginDTO loginDto) {
         // nap input gom username / pass vap security
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
@@ -39,7 +40,6 @@ public class AuthController {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         // create token
-        String accessToken = this.securityUtil.createAccessToken(authentication);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         ResLoginDTO resLoginDTO = new ResLoginDTO();
 
@@ -49,9 +49,7 @@ public class AuthController {
             resLoginDTO.setUser(userLogin);
 
         }
-
-
-
+        String accessToken = this.securityUtil.createAccessToken(authentication, resLoginDTO.getUser());
         resLoginDTO.setAccess_token(accessToken);
 
         // create redresh token
@@ -73,4 +71,22 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                 .body(resLoginDTO);
     }
+
+    @GetMapping("/auth/account")
+    @ApiMessage("fetch account message")
+    public  ResponseEntity<ResLoginDTO.UserLogin> getAccount() {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        if (currentUserDB != null) {
+            userLogin.setId(currentUserDB.getId());
+            userLogin.setEmail(currentUserDB.getEmail());
+            userLogin.setName(currentUserDB.getName());
+        }
+
+        return ResponseEntity.ok().body(userLogin);
+    }
+
+
 }
