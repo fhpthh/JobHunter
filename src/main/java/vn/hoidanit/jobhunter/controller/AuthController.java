@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.controller;
 
 import jakarta.validation.Valid;
+import org.apache.tomcat.Jar;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -9,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
@@ -39,7 +41,7 @@ public class AuthController {
         // xac thuc nguoi dung => viet ham loadByUserNam
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        // create token
+        // set thong tin nguoi dung dang nhap vao context (co the su dung sau nay_
         SecurityContextHolder.getContext().setAuthentication(authentication);
         ResLoginDTO resLoginDTO = new ResLoginDTO();
 
@@ -86,6 +88,17 @@ public class AuthController {
         }
 
         return ResponseEntity.ok().body(userLogin);
+    }
+
+    @GetMapping("/auth/refresh")
+    @ApiMessage("Get User by refresh token")
+    public ResponseEntity<String> getRefreshToken(
+            @CookieValue(name = "refresh_token") String refreshToken
+    ) {
+        // check valid
+        Jwt decodedToken = this.securityUtil.checkValidRefreshToken(refreshToken);
+        String email = decodedToken.getSubject();
+        return ResponseEntity.ok().body(email);
     }
 
 
