@@ -77,18 +77,20 @@ public class AuthController {
 
     @GetMapping("/auth/account")
     @ApiMessage("fetch account message")
-    public  ResponseEntity<ResLoginDTO.UserLogin> getAccount() {
+    public  ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
 
         User currentUserDB = this.userService.handleGetUserByUsername(email);
         ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
         if (currentUserDB != null) {
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
             userLogin.setName(currentUserDB.getName());
+            userGetAccount.setUser(userLogin);
         }
 
-        return ResponseEntity.ok().body(userLogin);
+        return ResponseEntity.ok().body(userGetAccount);
     }
 
     @GetMapping("/auth/refresh")
@@ -118,14 +120,14 @@ public class AuthController {
         resLoginDTO.setAccess_token(accessToken);
 
         // create redresh token
-        String new_refreshToken = this.securityUtil.createRefreshToken(email,resLoginDTO );
+        String new_refresh_Token = this.securityUtil.createRefreshToken(email,resLoginDTO );
 
         // update userr
-        this.userService.updateUserToken(new_refreshToken, email);
+        this.userService.updateUserToken(new_refresh_Token, email);
 
         // set ccokies
         ResponseCookie resCookies = ResponseCookie
-                .from("refresh_token", new_refreshToken)
+                .from("refresh_token", new_refresh_Token)
                 .path("/") // setPath
                 .httpOnly(true)
                 .secure(true)   // nếu dùng HTTPS
@@ -137,5 +139,30 @@ public class AuthController {
                 .body(resLoginDTO);
     }
 
+    @PostMapping("auth/logout")
+    @ApiMessage("Logout User")
 
+    public ResponseEntity<Void> logout() throws IdInValidException {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
+        if(email.equals("")) {
+            throw new IdInValidException("Access token invalid");
+        }
+        //update refresh token
+        this.userService.updateUserToken(null, email);
+
+        // remove refresh
+        ResponseCookie deleteSpringCookie = ResponseCookie
+                .from("refresh_token", null)
+                .path("/") // setPath
+                .httpOnly(true)
+                .secure(true)   // nếu dùng HTTPS
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
+                .body(null);
+
+    }
 }
+
