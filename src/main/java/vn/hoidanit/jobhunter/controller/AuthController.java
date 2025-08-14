@@ -18,6 +18,7 @@ import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
+import vn.hoidanit.jobhunter.util.error.IdInValidException;
 
 @RestController
 @RequestMapping("api/v1")
@@ -51,7 +52,7 @@ public class AuthController {
             resLoginDTO.setUser(userLogin);
 
         }
-        String accessToken = this.securityUtil.createAccessToken(authentication, resLoginDTO.getUser());
+        String accessToken = this.securityUtil.createAccessToken(authentication.getName(), resLoginDTO.getUser());
         resLoginDTO.setAccess_token(accessToken);
 
         // create redresh token
@@ -92,13 +93,48 @@ public class AuthController {
 
     @GetMapping("/auth/refresh")
     @ApiMessage("Get User by refresh token")
-    public ResponseEntity<String> getRefreshToken(
+    public ResponseEntity<ResLoginDTO> getRefreshToken(
             @CookieValue(name = "refresh_token") String refreshToken
-    ) {
+    ) throws IdInValidException {
         // check valid
         Jwt decodedToken = this.securityUtil.checkValidRefreshToken(refreshToken);
         String email = decodedToken.getSubject();
-        return ResponseEntity.ok().body(email);
+
+        // check user by token + emial
+        ResLoginDTO resLoginDTO = new ResLoginDTO();
+
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        if (currentUserDB != null) {
+            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(currentUserDB.getId(), currentUserDB.getEmail(), currentUserDB.getName());
+            resLoginDTO.setUser(userLogin);
+
+        }
+        User curUser = this.userService.getUserByRefreshTokenAndEmail(refreshToken, email);
+        if (curUser == null) {
+            throw  new IdInValidException("Refresh Token khong hop le");
+        }// tao ra token moi
+
+        String accessToken = this.securityUtil.createAccessToken(email, resLoginDTO.getUser());
+        resLoginDTO.setAccess_token(accessToken);
+
+        // create redresh token
+        String new_refreshToken = this.securityUtil.createRefreshToken(email,resLoginDTO );
+
+        // update userr
+        this.userService.updateUserToken(new_refreshToken, email);
+
+        // set ccokies
+        ResponseCookie resCookies = ResponseCookie
+                .from("refresh_token", new_refreshToken)
+                .path("/") // setPath
+                .httpOnly(true)
+                .secure(true)   // nếu dùng HTTPS
+                .maxAge(refreshTokenExpiration)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                .body(resLoginDTO);
     }
 
 
