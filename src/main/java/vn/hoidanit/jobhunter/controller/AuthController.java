@@ -1,7 +1,6 @@
 package vn.hoidanit.jobhunter.controller;
 
 import jakarta.validation.Valid;
-import org.apache.tomcat.Jar;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -13,7 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
+import vn.hoidanit.jobhunter.domain.dto.ReqLoginDTO;
 import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
@@ -36,9 +35,9 @@ public class AuthController {
     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     public long refreshTokenExpiration;
     @PostMapping("/auth/login")
-    public ResponseEntity<ResLoginDTO> login(@Valid  @RequestBody LoginDTO loginDto) {
+    public ResponseEntity<ResLoginDTO> login(@Valid  @RequestBody ReqLoginDTO reqLoginDto) {
         // nap input gom username / pass vap security
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(reqLoginDto.getUsername(), reqLoginDto.getPassword());
         // xac thuc nguoi dung => viet ham loadByUserNam
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
@@ -46,7 +45,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         ResLoginDTO resLoginDTO = new ResLoginDTO();
 
-        User currentUserDB = this.userService.handleGetUserByUsername(loginDto.getUsername());
+        User currentUserDB = this.userService.handleGetUserByUsername(reqLoginDto.getUsername());
         if (currentUserDB != null) {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(currentUserDB.getId(), currentUserDB.getEmail(), currentUserDB.getName());
             resLoginDTO.setUser(userLogin);
@@ -56,10 +55,10 @@ public class AuthController {
         resLoginDTO.setAccess_token(accessToken);
 
         // create redresh token
-        String refreshToken = this.securityUtil.createRefreshToken(loginDto.getUsername(),resLoginDTO );
+        String refreshToken = this.securityUtil.createRefreshToken(reqLoginDto.getUsername(),resLoginDTO );
 
         // update userr
-        this.userService.updateUserToken(refreshToken, loginDto.getUsername());
+        this.userService.updateUserToken(refreshToken, reqLoginDto.getUsername());
 
         // set ccokies
         ResponseCookie resCookies = ResponseCookie
