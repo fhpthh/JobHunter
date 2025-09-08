@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
@@ -77,12 +78,12 @@ public class UserController {
     }
     @PutMapping("users")
     @ApiMessage("update a user")
-    public ResponseEntity<User> handleUpdateUser(@RequestBody User user)  throws  IdInValidException {
+    public ResponseEntity<ResUpdateUserDTO> handleUpdateUser(@RequestBody User user)  throws  IdInValidException {
 
         User updateUser = this.userService.handleUpdateUser(user);
         if (updateUser == null) {
             throw new IdInValidException("User with id " + user.getId() + "not found");
         }
-        return ResponseEntity.ok().body(updateUser);
+        return ResponseEntity.ok().body(this.userService.convertToResUpdateUserDTO(user));
     }
 }
