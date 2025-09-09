@@ -39,7 +39,7 @@ public class FileService {
 
     }
 
-    public void store(MultipartFile file, String folder) throws URISyntaxException,
+    public String store(MultipartFile file, String folder) throws URISyntaxException,
             IOException {
 // create unique filename
         String finalName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
@@ -49,5 +49,6 @@ public class FileService {
             Files.copy(inputStream, path,
                     StandardCopyOption.REPLACE_EXISTING);
         }
+        return finalName;
     }
 }
