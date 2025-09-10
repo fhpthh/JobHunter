@@ -1,12 +1,12 @@
 package vn.hoidanit.jobhunter.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -20,7 +20,7 @@ public class FileService {
     @Value("${hoidanit.upload-file.base-uri}")
     private String baseURI;
 
-    public void createDirectory(String folder) throws URISyntaxException{
+    public void createDirectory(String folder) throws URISyntaxException {
         URI uri = URI.create(folder);
         Path path = Paths.get(uri);
         File tmpDir = new File(path.toString());
@@ -32,8 +32,7 @@ public class FileService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
             System.out.println("Directory already exists");
         }
 
@@ -51,4 +50,26 @@ public class FileService {
         }
         return finalName;
     }
+
+    public long getFileLength(String fileName, String folder) throws URISyntaxException {
+        URI uri = new URI(baseURI + folder + "/" + fileName);
+        Path path = Paths.get(uri);
+        File tmpDir = new File(path.toString());
+
+        // file 0 ton tai hoac file la 1 director => return 0
+        if (!tmpDir.isDirectory() || !tmpDir.exists()) {
+            return 0;
+        }
+        return tmpDir.length();
+    }
+
+    public InputStreamSource getSource(String fileName, String folder) throws URISyntaxException, FileNotFoundException {
+        URI uri = new URI(baseURI + folder + "/" + fileName);
+        Path path = Paths.get(uri);
+        File file = new File(path.toString());
+
+        return new InputStreamResource(new FileInputStream(file));
+
+    }
+
 }
