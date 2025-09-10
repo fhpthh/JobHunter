@@ -1,61 +1,46 @@
 package vn.hoidanit.jobhunter.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
-import vn.hoidanit.jobhunter.util.constant.GenderEnum;
+import vn.hoidanit.jobhunter.util.constant.ResumeStateEnum;
 
 import java.time.Instant;
-import java.util.List;
 
+@Table(name = "resumes")
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
-
-public class User {
+public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String name;
-
-    @NotBlank(message = "email khong de trong")
     private String email;
-
-    @NotBlank(message = "password khong de trong")
-    private String password;
-
-    private int age;
+    private String url;
 
     @Enumerated(EnumType.STRING)
-    private GenderEnum gender;
-
-    private String address;
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
+    private ResumeStateEnum status;
     private Instant createdAt;
     private Instant updatedAt;
+
     private String createdBy;
     private String updatedBy;
 
     @ManyToOne
-    @JoinColumn(name=  "company_id")
-    private Company company;
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @OneToMany(mappedBy = "user")
-    @JsonIgnore
-    private List<Resume> resumes;
-
+    @ManyToOne
+    @JoinColumn(name = "job_id")
+    private Job job;
 
     @PrePersist
     public void handleCreatedAt() {
         this.createdAt = Instant.now();
         this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true ? SecurityUtil.getCurrentUserLogin().get() : "";
+
+
     }
 
     @PreUpdate
@@ -63,7 +48,4 @@ public class User {
         this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true ? SecurityUtil.getCurrentUserLogin().get() : "";
         this.updatedAt = Instant.now();
     }
-
-
-
 }
